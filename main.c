@@ -6,23 +6,23 @@ int num_customers = 0;		// number of customers
 
 void chef() 
 {
-
+	// fill this out
 }
 void customer() 
 {
-
+	// fill this out
 }
 
 // Chef helps customer
 service_customer()
 {
-	service(); // assume this busy function is already written
+	up(working);
 }
 
 // Customer is helped
 get_help()
 {
-
+	down(working);
 }
 
 down(semaphore s)
