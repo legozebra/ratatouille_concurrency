@@ -5,7 +5,7 @@ semaphore mutex = 1;		// for mutual exclusion of critical resource, used to prev
 int max_customers = n;
 int num_customers = 0;		// number of customers 
 
-void chef() 
+void chef() 	// CONSUMER
 {
 	while(1)
 	{
@@ -13,16 +13,44 @@ void chef()
 		// Hints:
 		// There are three semaphores used here. Only one is locked and released in this loop.
 		// The chef should sleep (watch dramas) when there are no customers and then if there is a customer, start to service the customer. Keep in mind that when a customer is serviced, the number of customers waiting will have to be decremented.
+		if (num_customers > 0) {
+			down(&chef);		// Chef is busy about to service a customer. So wait for chef to be available before proceeding
+			service_customer();	// Service the customer.
+			down(&customers);	// CONSUME Customer
+			down(&mutex);		// Start critical section
+				num_customers -= 1;	// Decrease num_customers waiting by 1
+			up(&mutex);			// end critical section
+			up(&chef);			// Chef is done working, so is available once again.
+		}
+		else {
+			// No customers to service.  Go back to watching KDrama
+			down(&customers);	// sleep and watch KDrama
+			up(&chef);			// let store know the chef is in the house! (available)
+		}
 	}
 }
-void customer() 
+
+
+void customer() 	// PRODUCER
 {
 	while(1)
 	{
 		// --------------- FILL THIS OUT--------------
 		// Hints:
 		// There are three semaphores used here. Only one is locked and released
-		// When a customer arrive, num_customers can change. However, num_customers will only change it it is less than max_customers. 
+		// When a customer arrive, num_customers can change. However, num_customers will only change it it is less than max_customers.
+		if (num_customers < max_customers)  {
+			up(&customers);		// PRODUCE a customer
+			down(&mutex);		// Start critical section
+				num_customers += 1;	// Increase num_customers
+			up(&mutex);			// end critical section
+
+			if (num_customers == 1) {
+				get_help();			// Tell chef to stop watching KDrama & work/help the customer.
+			}
+		} else {
+			// All seats are taken so customer just leaves
+		}
 	}
 }
 
